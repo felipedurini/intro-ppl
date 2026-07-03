@@ -30,7 +30,47 @@ Desde la carpeta del proyecto, ejecuta:
 ```bash
 node server.js
 ```
+Abrir el navegador: Una vez corriendo, ingresá a la URL que te indica la consola (por defecto es http://localhost:4173).
 
+Cómo usar la interfaz
+Selección de programas: En el menú desplegable "Ejemplo", podés elegir cualquiera de los árboles sintácticos (AST) cargados en examples.js (como bloques let anidados, bifurcaciones if o funciones recursivas). El visualizador ejecutará el programa por completo de fondo con la opción { trace: true } y congelará la historia para inspección.
+
+Controles de reproducción:
+
+Iniciar: Reinicia la simulación del ejemplo seleccionado al Paso 0.
+
+Siguiente paso: Avanza un ciclo en el bucle while del evaluador, procesando la instrucción actual.
+
+Paso anterior: Retrocede un ciclo en la historia para analizar qué provocó el cambio de estado en las pilas.
+
+Bloque de Resultado: En la esquina superior derecha, verás el valor final que retorna el programa cuando la ejecución llega a su último paso.
+
+Cómo entender lo que estás viendo en pantalla
+La interfaz divide el estado de la máquina en componentes claros que mapean de forma idéntica el estado de la memoria en el motor interno:
+
+1. Panel de Métricas (Estado Actual)
+Paso: Indica el ciclo actual del while sobre el total de pasos cronometrados que tomó resolver el programa.
+
+Próxima instrucción: El comando de control de bajo nivel que está en el tope de la pila y se resolverá al presionar "Siguiente paso" (ev, letk, ifk, callk o discard).
+
+Tamaño C y V: La cantidad exacta de elementos apilados en cada estructura en el ciclo actual.
+
+2. Pila de Control C (La columna izquierda)
+Representa las continuaciones de ejecución pendientes (análogo al registro EIP / RIP o al puntero de instrucciones).
+
+El componente marcado con el tag top es el elemento que se va a extraer mediante .pop() en el siguiente paso.
+
+Cada bloque te muestra un resumen de una línea del código o comando interno, y abajo un desglose en formato JSON expandible con los metadatos de esa instrucción (como el entorno léxico capturado y la dirección de rastreo addr).
+
+3. Pila de Valores V (La columna derecha)
+Almacena los resultados intermedios de los cálculos, los literales evaluados y los contextos funcionales listos para ser consumidos.
+
+Cuando una operación en C requiere parámetros (como una suma o una condición de un if), extraerá mediante .pop() los valores necesarios del tope de esta pila V.
+
+Las funciones nativas de JavaScript se visualizan con la etiqueta <primitive nombre> para facilitar su lectura, y las funciones del lenguaje probabilístico se renderizan como objetos estructurados de tipo closure.
+
+4. Entorno Visible (El panel inferior)
+Muestra un snapshot en JSON plano de los bindings actuales en memoria (el diccionario de variables locales env). Muestra exactamente qué nombres de variables están activos en el paso actual y qué valor mutado o clausura tienen asignado dentro de ese ámbito léxico específico.
 Luego abre esta direccion en el navegador:
 
 ```text
