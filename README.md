@@ -51,6 +51,15 @@ npm.cmd start
 
 Si ya usas Visual Studio Code, otra opcion es abrir `index.html` con la extension Live Server.
 
+## Guía de Uso del Visualizador Interactivo
+
+Para facilitar el análisis de la semántica operacional de la máquina de estados sin meter herramientas pesadas de empaquetado, incluimos un servidor estático ligero nativo y una interfaz web que lee directamente los módulos de JavaScript.
+
+### Cómo levantar la interfaz web
+
+1. **Iniciar el servidor local:** En la raíz del proyecto, ejecutá el script con Node.js para levantar el servidor de desarrollo:
+   ```bash
+   node server.js
 ## Estructura del Proyecto y Contexto
 
 El interprete vive en `src/` y ejecuta programas escritos como ASTs simples, representados con arreglos anidados de JavaScript.
