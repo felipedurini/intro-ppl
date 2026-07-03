@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Visualizador PPL C/V</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #202427;
+            --muted: #667078;
+            --line: #d8ded9;
+            --panel: #ffffff;
+            --surface: #f4f7f2;
+            --accent: #006d75;
+            --accent-strong: #004e54;
+            --warn: #b06900;
+            --code: #152023;
+            --code-bg: #eef3ef;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            background:
+                linear-gradient(180deg, rgba(0, 109, 117, 0.08), transparent 260px),
+                var(--surface);
+            font-family: Aptos, "Segoe UI", sans-serif;
+        }
+
+        button,
+        select {
+            font: inherit;
+        }
+
+        .app {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 36px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .eyebrow {
+            margin: 0 0 6px;
+            color: var(--accent-strong);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 4.2rem);
+            line-height: 0.95;
+            letter-spacing: 0;
+        }
+
+        .result {
+            min-width: 220px;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.78);
+        }
+
+        .result span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-bottom: 4px;
+        }
+
+        .result strong {
+            font-family: "Cascadia Code", Consolas, monospace;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: minmax(240px, 1fr) auto auto auto;
+            gap: 10px;
+            align-items: end;
+            padding: 14px;
+            border: 1px solid var(--line);
+            background: var(--panel);
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: grid;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        select,
+        button {
+            min-height: 42px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--ink);
+            padding: 0 12px;
+        }
+
+        button {
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        button.primary {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
+        .status {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .metric,
+        .panel {
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .metric {
+            padding: 12px 14px;
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.78rem;
+            margin-bottom: 6px;
+        }
+
+        .metric strong {
+            font-size: 1.25rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .panel {
+            min-height: 220px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 1rem;
+            letter-spacing: 0;
+        }
+
+        .count {
+            color: var(--muted);
+            font-family: "Cascadia Code", Consolas, monospace;
+            font-size: 0.85rem;
+        }
+
+        .stack {
+            display: grid;
+            gap: 8px;
+            padding: 12px;
+        }
+
+        .frame {
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .frame.is-top {
+            border-color: var(--accent);
+            box-shadow: inset 4px 0 0 var(--accent);
+        }
+
+        .frame-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--line);
+            background: #f9fbf8;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 0 8px;
+            background: var(--code-bg);
+            color: var(--code);
+            font-family: "Cascadia Code", Consolas, monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .badge.next {
+            background: #fff3dc;
+            color: var(--warn);
+        }
+
+        pre {
+            margin: 0;
+            padding: 10px;
+            overflow: auto;
+            color: var(--code);
+            background: #fff;
+            font-family: "Cascadia Code", Consolas, monospace;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .wide {
+            grid-column: 1 / -1;
+        }
+
+        .empty {
+            padding: 18px;
+            color: var(--muted);
+        }
+
+        .error {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border: 1px solid #d99b9b;
+            background: #fff1f1;
+            color: #8a1f1f;
+            display: none;
+        }
+
+        @media (max-width: 820px) {
+            .topbar,
+            .grid,
+            .status,
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                display: grid;
+                align-items: start;
+            }
+
+            .result {
+                min-width: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Maquina abstracta PPL</p>
+                <h1>Pilas C y V</h1>
+            </div>
+            <div class="result">
+                <span>Resultado</span>
+                <strong id="resultValue">-</strong>
+            </div>
+        </header>
+
+        <section class="controls" aria-label="Controles del visualizador">
+            <label>
+                Ejemplo
+                <select id="exampleSelect"></select>
+            </label>
+            <button class="primary" id="runButton" type="button">Iniciar</button>
+            <button id="prevButton" type="button">Paso anterior</button>
+            <button id="nextButton" type="button">Siguiente paso</button>
+        </section>
+
+        <section class="status" aria-label="Estado actual">
+            <div class="metric">
+                <span>Paso</span>
+                <strong id="stepMetric">0 / 0</strong>
+            </div>
+            <div class="metric">
+                <span>Proxima instruccion</span>
+                <strong id="nextMetric">-</strong>
+            </div>
+            <div class="metric">
+                <span>Tamano C</span>
+                <strong id="controlMetric">0</strong>
+            </div>
+            <div class="metric">
+                <span>Tamano V</span>
+                <strong id="valueMetric">0</strong>
+            </div>
+        </section>
+
+        <section class="grid">
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Pila de control C</h2>
+                    <span class="count" id="controlCount">0 items</span>
+                </div>
+                <div class="stack" id="controlStack"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Pila de valores V</h2>
+                    <span class="count" id="valueCount">0 items</span>
+                </div>
+                <div class="stack" id="valueStack"></div>
+            </article>
+
+            <article class="panel wide">
+                <div class="panel-header">
+                    <h2>Entorno visible</h2>
+                    <span class="count" id="envCount">0 bindings</span>
+                </div>
+                <pre id="envView">{}</pre>
+            </article>
+        </section>
+
+        <div class="error" id="errorBox"></div>
+    </main>
+
+    <script type="module">
+        import M from './src/machine.js';
+        import { resume } from './src/evaluator.js';
+        import examples from './src/examples.js';
+
+        // Estos nombres son los frames internos que el evaluador entiende.
+        // Cualquier otra cosa que aparezca en V la mostramos como "valor".
+        const INTERNAL_COMMANDS = new Set(['ev', 'letk', 'callk', 'ifk', 'discard']);
+
+        // Agrupar referencias DOM evita repetir querySelector en cada render.
+        const els = {
+            select: document.querySelector('#exampleSelect'),
+            run: document.querySelector('#runButton'),
+            prev: document.querySelector('#prevButton'),
+            next: document.querySelector('#nextButton'),
+            result: document.querySelector('#resultValue'),
+            step: document.querySelector('#stepMetric'),
+            nextMetric: document.querySelector('#nextMetric'),
+            controlMetric: document.querySelector('#controlMetric'),
+            valueMetric: document.querySelector('#valueMetric'),
+            controlCount: document.querySelector('#controlCount'),
+            valueCount: document.querySelector('#valueCount'),
+            envCount: document.querySelector('#envCount'),
+            controlStack: document.querySelector('#controlStack'),
+            valueStack: document.querySelector('#valueStack'),
+            envView: document.querySelector('#envView'),
+            error: document.querySelector('#errorBox')
+        };
+
+        const state = {
+            // trace guarda snapshots ya terminados; index decide cual estamos
+            // mirando cuando el usuario avanza o retrocede.
+            trace: [],
+            index: 0,
+            result: null
+        };
+
+        // El selector se genera desde examples.js para que agregar un ejemplo no
+        // requiera tocar el HTML.
+        for (const example of Object.values(examples)) {
+            const option = document.createElement('option');
+            option.value = example.id;
+            option.textContent = example.name;
+            els.select.append(option);
+        }
+
+        function compact(value) {
+            // compact produce una version de una linea, util para encabezados de
+            // cards. El JSON completo queda debajo para inspeccion detallada.
+            if (value?.type === 'symbol') {
+                return value.name;
+            }
+
+            if (value?.type === 'primitive') {
+                return `<primitive ${value.name}>`;
+            }
+
+            if (value?.type === 'closure') {
+                const params = Array.isArray(value.params) ? value.params.map(compact).join(', ') : '';
+                return `fn(${params})`;
+            }
+
+            if (Array.isArray(value)) {
+                return `[${value.map(compact).join(' ')}]`;
+            }
+
+            if (value && typeof value === 'object') {
+                const keys = Object.keys(value);
+                return `{${keys.join(', ')}}`;
+            }
+
+            return String(value);
+        }
+
+        function normalizeForJson(value) {
+            // Las closures completas pueden ser grandes y ciclicas. En la vista
+            // JSON mostramos lo importante sin bloquear el navegador.
+            if (value?.type === 'closure') {
+                return {
+                    type: 'closure',
+                    params: value.params,
+                    body: value.body,
+                    envKeys: Object.keys(value.env ?? {})
+                };
+            }
+
+            if (Array.isArray(value)) {
+                return value.map(normalizeForJson);
+            }
+
+            if (value && typeof value === 'object') {
+                const clone = {};
+                for (const [key, item] of Object.entries(value)) {
+                    clone[key] = normalizeForJson(item);
+                }
+                return clone;
+            }
+
+            return value;
+        }
+
+        function pretty(value) {
+            return JSON.stringify(normalizeForJson(value), null, 2);
+        }
+
+        function commandOf(frame) {
+            return Array.isArray(frame) && INTERNAL_COMMANDS.has(frame[0]) ? frame[0] : 'valor';
+        }
+
+        function renderStack(container, values, emptyText) {
+            container.replaceChildren();
+
+            if (!values.length) {
+                const empty = document.createElement('div');
+                empty.className = 'empty';
+                empty.textContent = emptyText;
+                container.append(empty);
+                return;
+            }
+
+            // Internamente el tope de la pila esta al final del arreglo. En la UI
+            // lo invertimos para que el proximo frame aparezca arriba de todo.
+            [...values].reverse().forEach((frame, index) => {
+                const item = document.createElement('article');
+                item.className = index === 0 ? 'frame is-top' : 'frame';
+
+                const head = document.createElement('div');
+                head.className = 'frame-head';
+
+                const badge = document.createElement('span');
+                badge.className = index === 0 ? 'badge next' : 'badge';
+                badge.textContent = index === 0 ? `${commandOf(frame)} - top` : commandOf(frame);
+
+                const summary = document.createElement('span');
+                summary.className = 'count';
+                summary.textContent = compact(frame);
+
+                const body = document.createElement('pre');
+                body.textContent = pretty(frame);
+
+                head.append(badge, summary);
+                item.append(head, body);
+                container.append(item);
+            });
+        }
+
+        function render() {
+            // render es deliberadamente puro respecto del interprete: solo lee el
+            // snapshot actual y pinta la pantalla.
+            const snapshot = state.trace[state.index];
+            const total = Math.max(state.trace.length - 1, 0);
+
+            els.prev.disabled = state.index <= 0;
+            els.next.disabled = state.index >= state.trace.length - 1;
+            els.step.textContent = `${state.index} / ${total}`;
+
+            if (!snapshot) {
+                els.nextMetric.textContent = '-';
+                els.controlMetric.textContent = '0';
+                els.valueMetric.textContent = '0';
+                els.controlCount.textContent = '0 items';
+                els.valueCount.textContent = '0 items';
+                els.envCount.textContent = '0 bindings';
+                renderStack(els.controlStack, [], 'Sin ejecucion cargada.');
+                renderStack(els.valueStack, [], 'Sin valores.');
+                els.envView.textContent = '{}';
+                return;
+            }
+
+            const command = snapshot.done ? 'fin' : commandOf(snapshot.nextInstruction);
+            els.nextMetric.textContent = command;
+            els.controlMetric.textContent = String(snapshot.C.length);
+            els.valueMetric.textContent = String(snapshot.V.length);
+            els.controlCount.textContent = `${snapshot.C.length} items`;
+            els.valueCount.textContent = `${snapshot.V.length} items`;
+
+            const envKeys = Object.keys(snapshot.env ?? {});
+            els.envCount.textContent = `${envKeys.length} bindings`;
+            els.envView.textContent = pretty(snapshot.env ?? {});
+
+            renderStack(els.controlStack, snapshot.C, 'La pila C esta vacia.');
+            renderStack(els.valueStack, snapshot.V, 'La pila V esta vacia.');
+        }
+
+        function showError(error) {
+            els.error.style.display = 'block';
+            els.error.textContent = error.message;
+        }
+
+        function clearError() {
+            els.error.style.display = 'none';
+            els.error.textContent = '';
+        }
+
+        function runSelectedExample() {
+            clearError();
+            const example = examples[els.select.value];
+            // El programa arranca con una unica instruccion: evaluar el AST raiz.
+            // resume llenara traceLog porque pasamos { trace: true }.
+            const machine = new M(
+                [['ev', example.ast, {}, ['program']]],
+                [],
+                {},
+                null,
+                0,
+                { trace: true }
+            );
+
+            try {
+                const result = resume(machine);
+                state.trace = machine.traceLog;
+                state.index = 0;
+                state.result = result;
+                els.result.textContent = compact(result);
+                render();
+            } catch (error) {
+                state.trace = [];
+                state.index = 0;
+                state.result = null;
+                els.result.textContent = '-';
+                showError(error);
+                render();
+            }
+        }
+
+        els.run.addEventListener('click', runSelectedExample);
+        els.prev.addEventListener('click', () => {
+            state.index = Math.max(0, state.index - 1);
+            render();
+        });
+        els.next.addEventListener('click', () => {
+            state.index = Math.min(state.trace.length - 1, state.index + 1);
+            render();
+        });
+        els.select.addEventListener('change', runSelectedExample);
+
+        runSelectedExample();
+    </script>
+</body>
+</html>
