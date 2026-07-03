@@ -80,4 +80,3 @@ Traduje personalmente el código del notebook a JavaScript. Después, para poder
 
 Estas funciones no le agregan ninguna complejidad al lenguaje ni alteran la lógica formal del intérprete; simplemente resuelven la serialización de los datos para que la interfaz web pueda capturar los estados de las pilas paso a paso y renderizarlos.
 
-# intro-ppl
