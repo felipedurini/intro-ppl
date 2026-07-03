@@ -32,6 +32,34 @@ node server.js
 ```
 Abrir el navegador: Una vez corriendo, ingresá a la URL que te indica la consola (por defecto es http://localhost:4173).
 
+```text
+http://localhost:4173
+```
+
+Tambien puedes usar npm:
+
+```bash
+npm start
+```
+
+En Windows, si PowerShell bloquea `npm start` por politicas de ejecucion, usa:
+
+```bash
+npm.cmd start
+```
+
+Si ya usas Visual Studio Code, otra opcion es abrir `index.html` con la extension Live Server.
+
+## Guía de Uso del Visualizador Interactivo
+
+Para facilitar el análisis de la semántica operacional de la máquina de estados sin meter herramientas pesadas de empaquetado, incluimos un servidor estático ligero nativo y una interfaz web que lee directamente los módulos de JavaScript.
+
+### Cómo levantar la interfaz web
+
+1. **Iniciar el servidor local:** En la raíz del proyecto, ejecutá el script con Node.js para levantar el servidor de desarrollo:
+   ```bash
+   node server.js
+
 Cómo usar la interfaz
 Selección de programas: En el menú desplegable "Ejemplo", podés elegir cualquiera de los árboles sintácticos (AST) cargados en examples.js (como bloques let anidados, bifurcaciones if o funciones recursivas). El visualizador ejecutará el programa por completo de fondo con la opción { trace: true } y congelará la historia para inspección.
 
@@ -71,35 +99,7 @@ Las funciones nativas de JavaScript se visualizan con la etiqueta <primitive nom
 
 4. Entorno Visible (El panel inferior)
 Muestra un snapshot en JSON plano de los bindings actuales en memoria (el diccionario de variables locales env). Muestra exactamente qué nombres de variables están activos en el paso actual y qué valor mutado o clausura tienen asignado dentro de ese ámbito léxico específico.
-Luego abre esta direccion en el navegador:
 
-```text
-http://localhost:4173
-```
-
-Tambien puedes usar npm:
-
-```bash
-npm start
-```
-
-En Windows, si PowerShell bloquea `npm start` por politicas de ejecucion, usa:
-
-```bash
-npm.cmd start
-```
-
-Si ya usas Visual Studio Code, otra opcion es abrir `index.html` con la extension Live Server.
-
-## Guía de Uso del Visualizador Interactivo
-
-Para facilitar el análisis de la semántica operacional de la máquina de estados sin meter herramientas pesadas de empaquetado, incluimos un servidor estático ligero nativo y una interfaz web que lee directamente los módulos de JavaScript.
-
-### Cómo levantar la interfaz web
-
-1. **Iniciar el servidor local:** En la raíz del proyecto, ejecutá el script con Node.js para levantar el servidor de desarrollo:
-   ```bash
-   node server.js
 ## Estructura del Proyecto y Contexto
 
 El interprete vive en `src/` y ejecuta programas escritos como ASTs simples, representados con arreglos anidados de JavaScript.
