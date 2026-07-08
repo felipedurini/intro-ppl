@@ -1,6 +1,6 @@
 # Visualizador PPL con pilas C y V
 
-Trabajo final de la materia Introducción a lenguajes probabilísticos, dictadas por el profesor Javier Burroni en la Facultad de Ciencias Exactas, Universidad de Buenos Aires.
+Trabajo final de la materia Introducción a lenguajes probabilísticos, dictada por el profesor Javier Burroni en la Facultad de Ciencias Exactas, Universidad de Buenos Aires.
 
 ## De qué trata
 
